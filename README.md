@@ -1,3 +1,11 @@
+# mootools-core-redos-fix
+
+This repository is being used to fix a [redos vulnerability](https://security.snyk.io/vuln/SNYK-JS-MOOTOOLS-6516631) in `Slick.Parse`.
+
+Tools used to help with this are:
+- https://regexper.com/ to visualise regex.
+- https://makenowjust-labs.github.io/recheck/playground/ to verify redos vulnerabilities
+
 # MooTools Core
 
 [![Build Status](https://travis-ci.org/mootools/mootools-core.png?branch=master)](https://travis-ci.org/mootools/mootools-core)
