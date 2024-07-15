@@ -16,6 +16,10 @@ var parsed,
 	reverseCache = {},
 	reUnescape = /\\/g;
 
+var safeReplace = function (expression, regexp, parser) {
+    return expression.replace(regexp, parser);
+}
+
 var parse = function(expression, isReversed){
 	if (expression == null) return null;
 	if (expression.Slick === true) return expression;
@@ -32,7 +36,7 @@ var parse = function(expression, isReversed){
 		}
 	};
 	separatorIndex = -1;
-	while (expression != (expression = expression.replace(regexp, parser)));
+	while (expression != (expression = safeReplace(expression, regexp, parser)));
 	parsed.length = parsed.expressions.length;
 	return currentCache[parsed.raw] = (reversed) ? reverse(parsed) : parsed;
 };
