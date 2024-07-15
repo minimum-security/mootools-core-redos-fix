@@ -21,11 +21,14 @@ const assertParseResultEquals = (expected, actual, string) => {
     currErrors = [];
     assertEquals(expected.length, actual.length, "length", string);
     assertEquals(expected.raw, actual.raw, "raw", string);
-    assertEquals(expected.expressions?.length, actual.expressions?.length, "expression lengeth", string);
+    assertEquals(expected.expressions?.length, actual.expressions?.length, "expressions lengeth", string);
     if (expected.expressions?.length !== actual.expressions?.length) return;
 
     expected.expressions?.forEach((expectedExpression, index) => {
         const actualExpression = actual.expressions[index];
+        assertEquals(expectedExpression.length, actualExpression.length, "expressionParts lengeth", string);
+        if (expectedExpression.length !== actualExpression.length) return;
+
         expectedExpression?.forEach((expectedExpressionPart, exprIndex) => {
             const actualExpressionPart = actualExpression[exprIndex];
             assertEquals(expectedExpressionPart.combinator, actualExpressionPart.combinator, `expression[${exprIndex}].combinator`, string);
