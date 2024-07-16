@@ -16,10 +16,10 @@ var parsed,
 	reverseCache = {},
 	reUnescape = /\\/g;
 
-var safeReplace = function (expression, regexp, parser) {
+var safeReplace = function (expression, regexp) {
     if (expression && expression.substring(0, 1) === ":"){
-         var pseudoRegexp = regexp;
-         return expression.replace(regexp, pseudoParser);
+         var pseudoRegexp = new RegExp("^(:+)((?:[\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])+)(?:\\((?:(?:([\\\"'])([^\\3]*)\\3)|((?:\\([^)]+\\)|[^()]*)+))\\))?");
+         return expression.replace(pseudoRegexp, pseudoParser);
     }
 
     return expression.replace(regexp, parser);
@@ -41,7 +41,7 @@ var parse = function(expression, isReversed){
 		}
 	};
 	separatorIndex = -1;
-	while (expression != (expression = safeReplace(expression, regexp, parser)));
+	while (expression != (expression = safeReplace(expression, regexp)));
 	parsed.length = parsed.expressions.length;
 	return currentCache[parsed.raw] = (reversed) ? reverse(parsed) : parsed;
 };
@@ -127,12 +127,6 @@ function parser(
 	attributeOperator,
 	attributeQuote,
 	attributeValue,
-
-	pseudoMarker,
-	pseudoClass,
-	pseudoQuote,
-	pseudoClassQuotedValue,
-	pseudoClassValue
 ){
 	if (separator || separatorIndex === -1){
 		parsed.expressions[++separatorIndex] = [];
@@ -165,17 +159,6 @@ function parser(
 		currentParsed.classes.push({
 			value: className,
 			regexp: new RegExp('(^|\\s)' + escapeRegExp(className) + '(\\s|$)')
-		});
-
-	} else if (pseudoClass){
-		pseudoClassValue = pseudoClassValue || pseudoClassQuotedValue;
-		pseudoClassValue = pseudoClassValue ? pseudoClassValue.replace(reUnescape, '') : null;
-
-		if (!currentParsed.pseudos) currentParsed.pseudos = [];
-		currentParsed.pseudos.push({
-			key: pseudoClass.replace(reUnescape, ''),
-			value: pseudoClassValue,
-			type: pseudoMarker.length == 1 ? 'class' : 'element'
 		});
 
 	} else if (attributeKey){
@@ -228,25 +211,13 @@ function parser(
 function pseudoParser(
 	rawMatch,
 
-	separator,
-	combinator,
-	combinatorChildren,
-
-	tagName,
-	id,
-	className,
-
-	attributeKey,
-	attributeOperator,
-	attributeQuote,
-	attributeValue,
-
 	pseudoMarker,
 	pseudoClass,
 	pseudoQuote,
 	pseudoClassQuotedValue,
 	pseudoClassValue
 ){
+    var separator, combinator, combinatorChildren;
 	if (separator || separatorIndex === -1){
 		parsed.expressions[++separatorIndex] = [];
 		combinatorIndex = -1;
@@ -263,24 +234,7 @@ function pseudoParser(
 
 	var currentParsed = parsed.expressions[separatorIndex][combinatorIndex];
 
-	if (tagName){
-		currentParsed.tag = tagName.replace(reUnescape, '');
-
-	} else if (id){
-		currentParsed.id = id.replace(reUnescape, '');
-
-	} else if (className){
-		className = className.replace(reUnescape, '');
-
-		if (!currentParsed.classList) currentParsed.classList = [];
-		if (!currentParsed.classes) currentParsed.classes = [];
-		currentParsed.classList.push(className);
-		currentParsed.classes.push({
-			value: className,
-			regexp: new RegExp('(^|\\s)' + escapeRegExp(className) + '(\\s|$)')
-		});
-
-	} else if (pseudoClass){
+    if (pseudoClass){
 		pseudoClassValue = pseudoClassValue || pseudoClassQuotedValue;
 		pseudoClassValue = pseudoClassValue ? pseudoClassValue.replace(reUnescape, '') : null;
 
@@ -290,48 +244,6 @@ function pseudoParser(
 			value: pseudoClassValue,
 			type: pseudoMarker.length == 1 ? 'class' : 'element'
 		});
-
-	} else if (attributeKey){
-		attributeKey = attributeKey.replace(reUnescape, '');
-		attributeValue = (attributeValue || '').replace(reUnescape, '');
-
-		var test, regexp;
-
-		switch (attributeOperator){
-			case '^=' : regexp = new RegExp(       '^'+ escapeRegExp(attributeValue)            ); break;
-			case '$=' : regexp = new RegExp(            escapeRegExp(attributeValue) +'$'       ); break;
-			case '~=' : regexp = new RegExp( '(^|\\s)'+ escapeRegExp(attributeValue) +'(\\s|$)' ); break;
-			case '|=' : regexp = new RegExp(       '^'+ escapeRegExp(attributeValue) +'(-|$)'   ); break;
-			case  '=' : test = function(value){
-				return attributeValue == value;
-			}; break;
-			case '*=' : test = function(value){
-				return value && value.indexOf(attributeValue) > -1;
-			}; break;
-			case '!=' : test = function(value){
-				return attributeValue != value;
-			}; break;
-			default   : test = function(value){
-				return !!value;
-			};
-		}
-
-		if (attributeValue == '' && (/^[*$^]=$/).test(attributeOperator)) test = function(){
-			return false;
-		};
-
-		if (!test) test = function(value){
-			return value && regexp.test(value);
-		};
-
-		if (!currentParsed.attributes) currentParsed.attributes = [];
-		currentParsed.attributes.push({
-			key: attributeKey,
-			operator: attributeOperator,
-			value: attributeValue,
-			test: test
-		});
-
 	}
 
 	return '';
