@@ -18,38 +18,44 @@ const assertEquals = (expected, actual, property, string) => {
 };
 
 const assertParseResultEquals = (expected, actual, string) => {
+    //FIX THE RETURNS SO TOTAL COUNT IS RIGHT
     currErrors = [];
     assertEquals(expected.length, actual.length, "length", string);
     assertEquals(expected.raw, actual.raw, "raw", string);
     assertEquals(expected.expressions?.length, actual.expressions?.length, "expressions lengeth", string);
-    if (expected.expressions?.length !== actual.expressions?.length) return;
-
-    expected.expressions?.forEach((expectedExpression, index) => {
-        const actualExpression = actual.expressions[index];
-        assertEquals(expectedExpression.length, actualExpression.length, "expressionParts lengeth", string);
-        if (expectedExpression.length !== actualExpression.length) return;
-
-        expectedExpression?.forEach((expectedExpressionPart, exprIndex) => {
-            const actualExpressionPart = actualExpression[exprIndex];
-            assertEquals(expectedExpressionPart.combinator, actualExpressionPart.combinator, `expression[${exprIndex}].combinator`, string);
-            assertEquals(expectedExpressionPart.tag, actualExpressionPart.tag, `expression[${exprIndex}].tag`, string);
-            assertEquals(expectedExpressionPart.pseudos?.length, actualExpressionPart.pseudos?.length, `expression[${exprIndex}]pseudos.length`, string);
-            if (expectedExpressionPart.pseudos?.length !== actualExpressionPart.pseudos?.length) return;
+    
+    if (expected.expressions?.length === actual.expressions?.length) {
+        expected.expressions?.forEach((expectedExpression, index) => {
+            const actualExpression = actual.expressions[index];
+            assertEquals(expectedExpression.length, actualExpression.length, "expressionParts lengeth", string);
             
-            expectedExpressionPart.pseudos?.forEach((expectedPseudo, pseudoIndex) => {
-                const actualPseudo = actualExpressionPart.pseudos[pseudoIndex];
-                assertEquals(expectedPseudo.key, actualPseudo.key, `expression[${exprIndex}].pseudo[${pseudoIndex}].key`, string);
-                assertEquals(expectedPseudo.class, actualPseudo.class, `expression ${exprIndex}.pseudo[${pseudoIndex}].class`, string);
-                assertEquals(expectedPseudo.value, actualPseudo.value, `expression ${exprIndex}.pseudo[${pseudoIndex}].value`, string);
-            });
+            if (expectedExpression.length === actualExpression.length) {
+    
+                expectedExpression?.forEach((expectedExpressionPart, exprIndex) => {
+                    const actualExpressionPart = actualExpression[exprIndex];
+                    assertEquals(expectedExpressionPart.combinator, actualExpressionPart.combinator, `expression[${exprIndex}].combinator`, string);
+                    assertEquals(expectedExpressionPart.tag, actualExpressionPart.tag, `expression[${exprIndex}].tag`, string);
+                    assertEquals(expectedExpressionPart.pseudos?.length, actualExpressionPart.pseudos?.length, `expression[${exprIndex}]pseudos.length`, string);
+                   
+                    if (expectedExpressionPart.pseudos?.length === actualExpressionPart.pseudos?.length) {
+                        expectedExpressionPart.pseudos?.forEach((expectedPseudo, pseudoIndex) => {
+                            const actualPseudo = actualExpressionPart.pseudos[pseudoIndex];
+                            assertEquals(expectedPseudo.key, actualPseudo.key, `expression[${exprIndex}].pseudo[${pseudoIndex}].key`, string);
+                            assertEquals(expectedPseudo.class, actualPseudo.class, `expression ${exprIndex}.pseudo[${pseudoIndex}].class`, string);
+                            assertEquals(expectedPseudo.value, actualPseudo.value, `expression ${exprIndex}.pseudo[${pseudoIndex}].value`, string);
+                        });
+                    }
+                });
+            }
         });
-    });
+    }
+
+
     if (currErrors.length === 0){
         passed += 1;
     } else {
         failed += 1;
     }
-    total += 1;
     errors = errors.concat(currErrors);
 };
 
@@ -121,6 +127,8 @@ const selectorsToTest = [
     ...validSelectors,
     ...randomSelectors
 ];
+
+total = selectorsToTest.length;
 
 selectorsToTest.forEach( toParse => {
     console.log(`Testing: ${toParse}`)
