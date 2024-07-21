@@ -18,7 +18,7 @@ const assertEquals = (expected, actual, property, string) => {
 };
 
 const assertParseResultEquals = (expected, actual, string) => {
-    //FIX THE RETURNS SO TOTAL COUNT IS RIGHT
+
     currErrors = [];
     assertEquals(expected.length, actual.length, "length", string);
     assertEquals(expected.raw, actual.raw, "raw", string);
