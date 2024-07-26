@@ -16,10 +16,28 @@ var parsed,
 	reverseCache = {},
 	reUnescape = /\\/g;
 
+var pseudoMarker;
+var match;
 var safeReplace = function (expression, regexp) {
+	match = false;
     if (expression && expression.substring(0, 1) === ":"){
-         var pseudoRegexp = new RegExp("^(:+)((?:[\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])+)(?:\\((?:(?:([\\\"'])([^\\3]*)\\3)|((?:\\([^)]+\\)|[^()]*)+))\\))?");
-         return expression.replace(pseudoRegexp, pseudoParser);
+
+		var pseudoMarkerRegex = new RegExp("^(:+)");
+		var workingExpression = expression.replace(pseudoMarkerRegex, function (
+			rawMatch
+		) {
+			pseudoMarker = rawMatch;
+			return '';
+		});
+
+         var pseudoRegexp = new RegExp("^((?:[\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])+)(?:\\((?:(?:([\"'])([^\\2]*)\\2)|((?:\\([^)]+\\)|[^()]*)+))\\))?");
+         workingExpression = workingExpression.replace(pseudoRegexp, pseudoParser);
+		 if (match) {
+			expression = workingExpression;
+		 }
+		 pseudoMarker = undefined;
+		 match = false;
+		 return expression;
     }
 
     return expression.replace(regexp, parser);
@@ -211,12 +229,13 @@ function parser(
 function pseudoParser(
 	rawMatch,
 
-	pseudoMarker,
 	pseudoClass,
 	pseudoQuote,
 	pseudoClassQuotedValue,
 	pseudoClassValue
 ){
+	if (rawMatch) match = true;
+
     var separator, combinator, combinatorChildren;
 	if (separator || separatorIndex === -1){
 		parsed.expressions[++separatorIndex] = [];
