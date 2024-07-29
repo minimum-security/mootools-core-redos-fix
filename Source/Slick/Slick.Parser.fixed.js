@@ -17,27 +17,36 @@ var parsed,
 	reUnescape = /\\/g;
 
 var pseudoMarker;
+var pseudoClass;
 var match;
 var safeReplace = function (expression, regexp) {
+	if (!expression) return;
+
 	match = false;
-    if (expression && expression.substring(0, 1) === ":"){
+    
+	var pseudoMarkerRegex = new RegExp("^(:+)");
+	var pseudoMarkerRegexMatches = expression.match(pseudoMarkerRegex)
+	if (pseudoMarkerRegexMatches){
+		match = true;
+		pseudoMarker = pseudoMarkerRegexMatches[0];
+		var workingExpression = expression.replace(pseudoMarkerRegex, '');
+    
+		var pseudoClassRegex = new RegExp("^((?:[\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])+)");
+		var pseudoClassRegexMatches = workingExpression.match(pseudoClassRegex)
+		if (pseudoClassRegexMatches){
+			pseudoClass = pseudoClassRegexMatches[0];
+			var workingExpression = workingExpression.replace(pseudoClassRegex, '');
 
-		var pseudoMarkerRegex = new RegExp("^(:+)");
-		var workingExpression = expression.replace(pseudoMarkerRegex, function (
-			rawMatch
-		) {
-			pseudoMarker = rawMatch;
-			return '';
-		});
-
-         var pseudoRegexp = new RegExp("^((?:[\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])+)(?:\\((?:(?:([\"'])([^\\2]*)\\2)|((?:\\([^)]+\\)|[^()]*)+))\\))?");
-         workingExpression = workingExpression.replace(pseudoRegexp, pseudoParser);
-		 if (match) {
-			expression = workingExpression;
-		 }
-		 pseudoMarker = undefined;
-		 match = false;
-		 return expression;
+			var pseudoRegexp = new RegExp("^(?:\\((?:(?:([\"'])([^\\1]*)\\1)|((?:\\([^)]+\\)|[^()]*)+))\\))?");
+			workingExpression = workingExpression.replace(pseudoRegexp, pseudoParser);
+			if (match) {
+				expression = workingExpression;
+			}
+			pseudoMarker = undefined;
+			pseudoClass = undefined;
+			match = false;
+		}
+		return expression;
     }
 
     return expression.replace(regexp, parser);
@@ -229,13 +238,10 @@ function parser(
 function pseudoParser(
 	rawMatch,
 
-	pseudoClass,
 	pseudoQuote,
 	pseudoClassQuotedValue,
 	pseudoClassValue
 ){
-	if (rawMatch) match = true;
-
     var separator, combinator, combinatorChildren;
 	if (separator || separatorIndex === -1){
 		parsed.expressions[++separatorIndex] = [];
