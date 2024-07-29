@@ -18,16 +18,12 @@ var parsed,
 
 var pseudoMarker;
 var pseudoClass;
-var match;
 var safeReplace = function (expression, regexp) {
 	if (!expression) return;
-
-	match = false;
     
 	var pseudoMarkerRegex = new RegExp("^(:+)");
 	var pseudoMarkerRegexMatches = expression.match(pseudoMarkerRegex)
 	if (pseudoMarkerRegexMatches){
-		match = true;
 		pseudoMarker = pseudoMarkerRegexMatches[0];
 		var workingExpression = expression.replace(pseudoMarkerRegex, '');
     
@@ -39,12 +35,10 @@ var safeReplace = function (expression, regexp) {
 
 			var pseudoRegexp = new RegExp("^(?:\\((?:(?:([\"'])([^\\1]*)\\1)|((?:\\([^)]+\\)|[^()]*)+))\\))?");
 			workingExpression = workingExpression.replace(pseudoRegexp, pseudoParser);
-			if (match) {
-				expression = workingExpression;
-			}
+			
+			expression = workingExpression;
 			pseudoMarker = undefined;
 			pseudoClass = undefined;
-			match = false;
 		}
 		return expression;
     }
