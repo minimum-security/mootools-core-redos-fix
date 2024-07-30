@@ -16,29 +16,42 @@ var parsed,
 	reverseCache = {},
 	reUnescape = /\\/g;
 
-var pseudoMarker;
-var pseudoClass;
 var safeReplace = function (expression, regexp) {
 	if (!expression) return;
-    
+
 	var pseudoMarkerRegex = new RegExp("^(:+)");
 	var pseudoMarkerRegexMatches = expression.match(pseudoMarkerRegex)
 	if (pseudoMarkerRegexMatches){
-		pseudoMarker = pseudoMarkerRegexMatches[0];
+		var pseudoMarker = pseudoMarkerRegexMatches[0];
 		var workingExpression = expression.replace(pseudoMarkerRegex, '');
-    
+
 		var pseudoClassRegex = new RegExp("^((?:[\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])+)");
 		var pseudoClassRegexMatches = workingExpression.match(pseudoClassRegex)
 		if (pseudoClassRegexMatches){
-			pseudoClass = pseudoClassRegexMatches[0];
-			var workingExpression = workingExpression.replace(pseudoClassRegex, '');
+			var pseudoClass = pseudoClassRegexMatches[0];
+			workingExpression = workingExpression.replace(pseudoClassRegex, '');
 
-			var pseudoRegexp = new RegExp("^(?:\\((?:(?:([\"'])([^\\1]*)\\1)|((?:\\([^)]+\\)|[^()]*)+))\\))?");
-			workingExpression = workingExpression.replace(pseudoRegexp, pseudoParser);
+			var pseudoClassValueRegexp = new RegExp("^(?:\\((?:(?:([\"'])([^\\1]*)\\1)|((?:\\([^)]+\\)|[^()]*)+))\\))?");
+			var pseudoClassValueMatches = workingExpression.match(pseudoClassValueRegexp);
+			var pseudoClassValue;
+			if (pseudoClassValueMatches){
+				pseudoClassValue = pseudoClassValueMatches[2] || pseudoClassValueMatches[3];
+				workingExpression = workingExpression.replace(pseudoClassValueRegexp, '');
+			}
+
+			parseSeparatorsAndCombinators();
+			
+			pseudoClassValue = pseudoClassValue ? pseudoClassValue.replace(reUnescape, '') : null;
+
+			var currentParsed = parsed.expressions[separatorIndex][combinatorIndex];
+			if (!currentParsed.pseudos) currentParsed.pseudos = [];
+			currentParsed.pseudos.push({
+				key: pseudoClass.replace(reUnescape, ''),
+				value: pseudoClassValue,
+				type: pseudoMarker.length == 1 ? 'class' : 'element'
+			});
 			
 			expression = workingExpression;
-			pseudoMarker = undefined;
-			pseudoClass = undefined;
 		}
 		return expression;
     }
@@ -133,6 +146,26 @@ __END__
 	.replace(/<unicode1>/g, '(?:[:\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])')
 );
 
+function parseSeparatorsAndCombinators(
+	separator,
+	combinator,
+	combinatorChildren
+){
+	if (separator || separatorIndex === -1){
+		parsed.expressions[++separatorIndex] = [];
+		combinatorIndex = -1;
+		if (separator) return '';
+	}
+
+	if (combinator || combinatorChildren || combinatorIndex === -1){
+		combinator = combinator || ' ';
+		var currentSeparator = parsed.expressions[separatorIndex];
+		if (reversed && currentSeparator[combinatorIndex])
+			currentSeparator[combinatorIndex].reverseCombinator = reverseCombinator(combinator);
+		currentSeparator[++combinatorIndex] = {combinator: combinator, tag: '*'};
+	}
+}
+
 function parser(
 	rawMatch,
 
@@ -149,19 +182,7 @@ function parser(
 	attributeQuote,
 	attributeValue,
 ){
-	if (separator || separatorIndex === -1){
-		parsed.expressions[++separatorIndex] = [];
-		combinatorIndex = -1;
-		if (separator) return '';
-	}
-
-	if (combinator || combinatorChildren || combinatorIndex === -1){
-		combinator = combinator || ' ';
-		var currentSeparator = parsed.expressions[separatorIndex];
-		if (reversed && currentSeparator[combinatorIndex])
-			currentSeparator[combinatorIndex].reverseCombinator = reverseCombinator(combinator);
-		currentSeparator[++combinatorIndex] = {combinator: combinator, tag: '*'};
-	}
+	parseSeparatorsAndCombinators(separator, combinator, combinatorChildren);
 
 	var currentParsed = parsed.expressions[separatorIndex][combinatorIndex];
 
@@ -227,47 +248,6 @@ function parser(
 
 	return '';
 };
-
-
-function pseudoParser(
-	rawMatch,
-
-	pseudoQuote,
-	pseudoClassQuotedValue,
-	pseudoClassValue
-){
-    var separator, combinator, combinatorChildren;
-	if (separator || separatorIndex === -1){
-		parsed.expressions[++separatorIndex] = [];
-		combinatorIndex = -1;
-		if (separator) return '';
-	}
-
-	if (combinator || combinatorChildren || combinatorIndex === -1){
-		combinator = combinator || ' ';
-		var currentSeparator = parsed.expressions[separatorIndex];
-		if (reversed && currentSeparator[combinatorIndex])
-			currentSeparator[combinatorIndex].reverseCombinator = reverseCombinator(combinator);
-		currentSeparator[++combinatorIndex] = {combinator: combinator, tag: '*'};
-	}
-
-	var currentParsed = parsed.expressions[separatorIndex][combinatorIndex];
-
-    if (pseudoClass){
-		pseudoClassValue = pseudoClassValue || pseudoClassQuotedValue;
-		pseudoClassValue = pseudoClassValue ? pseudoClassValue.replace(reUnescape, '') : null;
-
-		if (!currentParsed.pseudos) currentParsed.pseudos = [];
-		currentParsed.pseudos.push({
-			key: pseudoClass.replace(reUnescape, ''),
-			value: pseudoClassValue,
-			type: pseudoMarker.length == 1 ? 'class' : 'element'
-		});
-	}
-
-	return '';
-};
-
 
 // Slick NS
 
