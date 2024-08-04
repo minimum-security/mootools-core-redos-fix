@@ -31,16 +31,53 @@ var safeReplace = function (expression, regexp) {
 			var pseudoClass = pseudoClassRegexMatches[0];
 			workingExpression = workingExpression.replace(pseudoClassRegex, '');
 
-			var pseudoClassValueRegexp = new RegExp("^(?:\\((?:(?:([\"'])([^\\1]*)\\1)|((?:\\([^)]+\\)|[^()]*)+))\\))?");
-			var pseudoClassValueMatches = workingExpression.match(pseudoClassValueRegexp);
-			var pseudoClassValue;
-			if (pseudoClassValueMatches){
-				pseudoClassValue = pseudoClassValueMatches[2] || pseudoClassValueMatches[3];
-				workingExpression = workingExpression.replace(pseudoClassValueRegexp, '');
+			var pseudoClassValue = undefined;
+
+			var openBraceRegex = new RegExp("^\\(");
+			var openBraceMatches = workingExpression.match(openBraceRegex);
+			if (openBraceMatches){
+				var pseudoValueWorkingExpression = workingExpression.replace(openBraceRegex, '');
+
+				var quotedPseudoValueRegex = new RegExp("^([\"'])([^\\1]*)\\1(?=\\))");
+				var quotedPseudoValueMatches = pseudoValueWorkingExpression.match(quotedPseudoValueRegex);
+				if (quotedPseudoValueMatches){
+					pseudoValueWorkingExpression = pseudoValueWorkingExpression.replace(quotedPseudoValueRegex, '');
+					pseudoClassValue = quotedPseudoValueMatches[2];
+				} else {
+					var pseudoValueRegex = new RegExp("^((?:\\([^)]+\\)|[^()]*)+)(?=\\))");
+					var pseudoValueMatches = pseudoValueWorkingExpression.match(pseudoValueRegex);
+					if (pseudoValueMatches){
+						pseudoValueWorkingExpression = pseudoValueWorkingExpression.replace(pseudoValueRegex, '');
+						pseudoClassValue = pseudoValueMatches[0];
+					}
+				}
+				if (pseudoClassValue){
+					//match and remove closing brace
+					var closingBraceRegex = new RegExp("^\\)");
+					var closingBraceMatches = pseudoValueWorkingExpression.match(closingBraceRegex);
+					if (closingBraceMatches){
+						var pseudoValueWorkingExpression = pseudoValueWorkingExpression.replace(closingBraceRegex, '');
+						workingExpression = pseudoValueWorkingExpression;
+					}
+					else {
+						pseudoClassValue = undefined;
+					}
+				}
+
+				// var pseudoRegexp = new RegExp("^(?:(?:(?:([\"'])([^\\1]*)\\1)|((?:\\([^)]+\\)|[^()]*)+))\\))?");
+				// pseudoValueWorkingExpression = pseudoValueWorkingExpression.replace(pseudoRegexp, pseudoParser);			
 			}
 
+			// var pseudoClassValueRegexp = new RegExp("^(?:\\((?:(?:([\"'])([^\\1]*)\\1)|((?:\\([^)]+\\)|[^()]*)+))\\))?");
+			// var pseudoClassValueMatches = workingExpression.match(pseudoClassValueRegexp);
+			// var pseudoClassValue;
+			// if (pseudoClassValueMatches){
+			// 	pseudoClassValue = pseudoClassValueMatches[2] || pseudoClassValueMatches[3];
+			// 	workingExpression = workingExpression.replace(pseudoClassValueRegexp, '');
+			// }
+
 			parseSeparatorsAndCombinators();
-			
+
 			pseudoClassValue = pseudoClassValue ? pseudoClassValue.replace(reUnescape, '') : null;
 
 			var currentParsed = parsed.expressions[separatorIndex][combinatorIndex];
