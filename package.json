@@ -45,7 +45,7 @@
     "karma-sinon-ie": "^1.0",
     "load-grunt-tasks": "^3.2",
     "mocha": "^2.3",
-    "phantomjs": "^2.1.7",
+    "phantomjs-prebuilt": "^2.1.7",
     "promises-aplus-tests": "^2.1",
     "sinon": "~1.14",
     "syn": "^0.1.2"
