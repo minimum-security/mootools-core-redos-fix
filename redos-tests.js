@@ -1,5 +1,5 @@
-const vulnerableParse = require("./Source/Slick/Slick.Parser.js").Slick.parse;
-const fixedParse = require("./Source/Slick/Slick.Parser.fixed.js").Slick.parse;
+const vulnerableParse = require("./Source/Slick/Slick.Parser.vuln.js").Slick.parse;
+const fixedParse = require("./Source/Slick/Slick.Parser.js").Slick.parse;
 
 var errors = [];
 var currErrors = [];
