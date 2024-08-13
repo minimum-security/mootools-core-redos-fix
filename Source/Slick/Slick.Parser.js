@@ -16,13 +16,21 @@ var parsed,
 	reverseCache = {},
 	reUnescape = /\\/g;
 
+var extractMatchAt = function (expression, regexp, index){
+	var matches = expression.match(regexp);
+	if (!matches) throw new Error('Match not found!');
+
+	var match = matches[index];
+	expression = expression.replace(regexp, '');
+	return match;
+}
+
 var safeReplace = function(expression, regexp){
 	if (!expression) return;
 
-	var pseudoMarkerRegex = new RegExp('^(:+)');
-	var pseudoMarkerRegexMatches = expression.match(pseudoMarkerRegex);
-	if (pseudoMarkerRegexMatches){
-		var pseudoMarker = pseudoMarkerRegexMatches[0];
+	try {
+		var pseudoMarkerRegex = new RegExp('^(:+)');
+		var pseudoMarker = extractMatchAt(expression, '^(:+)', 0);
 		var workingExpression = expression.replace(pseudoMarkerRegex, '');
 
 		var pseudoClassRegex = new RegExp('^((?:[\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])+)');
@@ -80,8 +88,9 @@ var safeReplace = function(expression, regexp){
 		}
 		return expression;
 	}
-
-	return expression.replace(regexp, parser);
+	catch (e){
+		return expression.replace(regexp, parser);
+	}
 };
 
 var parse = function(expression, isReversed){
