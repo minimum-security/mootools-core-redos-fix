@@ -51,7 +51,7 @@ var safeReplace = function(expression, regexp){
 						pseudoClassValue = pseudoValueMatches[0];
 					}
 				}
-				if (pseudoClassValue){
+				if (pseudoClassValue !== undefined){
 					//match and remove closing brace
 					var closingBraceRegex = new RegExp('^\\)');
 					var closingBraceMatches = pseudoValueWorkingExpression.match(closingBraceRegex);
@@ -63,19 +63,7 @@ var safeReplace = function(expression, regexp){
 						pseudoClassValue = undefined;
 					}
 				}
-
-				// var pseudoRegexp = new RegExp("^(?:(?:(?:([\"'])([^\\1]*)\\1)|((?:\\([^)]+\\)|[^()]*)+))\\))?");
-				// pseudoValueWorkingExpression = pseudoValueWorkingExpression.replace(pseudoRegexp, pseudoParser);
 			}
-
-			// var pseudoClassValueRegexp = new RegExp("^(?:\\((?:(?:([\"'])([^\\1]*)\\1)|((?:\\([^)]+\\)|[^()]*)+))\\))?");
-			// var pseudoClassValueMatches = workingExpression.match(pseudoClassValueRegexp);
-			// var pseudoClassValue;
-			// if (pseudoClassValueMatches){
-			// 	pseudoClassValue = pseudoClassValueMatches[2] || pseudoClassValueMatches[3];
-			// 	workingExpression = workingExpression.replace(pseudoClassValueRegexp, '');
-			// }
-
 			parseSeparatorsAndCombinators();
 
 			pseudoClassValue = pseudoClassValue ? pseudoClassValue.replace(reUnescape, '') : null;
