@@ -31,39 +31,29 @@ var extractPseudoValue = function (expression){
 
 	var openBraceMatches = extractMatchAt(expression, '^\\(', 0);
 	if (!openBraceMatches) return [];
-	var pseudoValueWorkingExpression = openBraceMatches[1];
+	var workingExpression = openBraceMatches[1];
 
-	// var quotedPseudoValueMatches = extractMatchAt(pseudoValueWorkingExpression, "^([\"'])([^\\1]*)\\1(?=\\))", 2);
-	// if (!quotedPseudoValueMatches) return [];
-	// var quotedPseudoValue = quotedPseudoValueMatches[0];
-	// pseudoValueWorkingExpression = quotedPseudoValueMatches[1];
-
-	var quotedPseudoValueRegex = new RegExp("^([\"'])([^\\1]*)\\1(?=\\))");
-	var quotedPseudoValueMatches = pseudoValueWorkingExpression.match(quotedPseudoValueRegex);
+	var quotedPseudoValueMatches = extractMatchAt(workingExpression, "^([\"'])([^\\1]*)\\1(?=\\))", 2);
 	if (quotedPseudoValueMatches){
-		pseudoValueWorkingExpression = pseudoValueWorkingExpression.replace(quotedPseudoValueRegex, '');
-		pseudoClassValue = quotedPseudoValueMatches[2];
+		pseudoClassValue = quotedPseudoValueMatches[0];
+		workingExpression = quotedPseudoValueMatches[1];
 	} else {
-		var pseudoValueRegex = new RegExp('^((?:\\([^)]+\\)|[^()]*)+)(?=\\))');
-		var pseudoValueMatches = pseudoValueWorkingExpression.match(pseudoValueRegex);
-		if (pseudoValueMatches){
-			pseudoValueWorkingExpression = pseudoValueWorkingExpression.replace(pseudoValueRegex, '');
-			pseudoClassValue = pseudoValueMatches[0];
+		var unquotedPseudoValueMatches = extractMatchAt(workingExpression, '^((?:\\([^)]+\\)|[^()]*)+)(?=\\))', 0);
+		if (unquotedPseudoValueMatches){
+			pseudoClassValue = unquotedPseudoValueMatches[0];
+			workingExpression = unquotedPseudoValueMatches[1];
 		}
 	}
+
     if (pseudoClassValue !== undefined){
-		//match and remove closing brace
-		var closingBraceRegex = new RegExp('^\\)');
-		var closingBraceMatches = pseudoValueWorkingExpression.match(closingBraceRegex);
+		var closingBraceMatches = extractMatchAt(workingExpression, '^\\)', 0);
 		if (closingBraceMatches){
-			pseudoValueWorkingExpression = pseudoValueWorkingExpression.replace(closingBraceRegex, '');
-			workingExpression = pseudoValueWorkingExpression;
-		}
-		else {
+			workingExpression = closingBraceMatches[1];
+		} else {
 			pseudoClassValue = undefined;
 		}
 	}
-	return [pseudoClassValue, pseudoValueWorkingExpression];
+	return [pseudoClassValue, workingExpression];
 }
 
 var safeReplace = function(expression, regexp){
@@ -86,10 +76,9 @@ var safeReplace = function(expression, regexp){
 		pseudoClassValue = pseudoValueMatches[0];
 		workingExpression = pseudoValueMatches[1];
 	}
+	pseudoClassValue = pseudoClassValue ? pseudoClassValue.replace(reUnescape, '') : null;
 
 	parseSeparatorsAndCombinators();
-
-	pseudoClassValue = pseudoClassValue ? pseudoClassValue.replace(reUnescape, '') : null;
 
 	var currentParsed = parsed.expressions[separatorIndex][combinatorIndex];
 	if (!currentParsed.pseudos) currentParsed.pseudos = [];
