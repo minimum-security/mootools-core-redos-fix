@@ -89,10 +89,16 @@ var safeReplacePseudo = function(expression, regexp){
 	return workingExpression;
 };
 
+var safeReplaceAttribute = function(expression, regexp){
+	return expression.replace(regexp, parser);
+};
+
 var safeReplace = function(expression, regexp){
 	if (!expression) return;
 
 	if (new RegExp('^(:+)').test(expression)) return safeReplacePseudo(expression, regexp);
+
+	if (new RegExp('^(\\[)').test(expression)) return safeReplaceAttribute(expression, regexp);
 
 	return expression.replace(regexp, parser);
 };
