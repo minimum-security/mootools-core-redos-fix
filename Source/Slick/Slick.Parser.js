@@ -16,7 +16,7 @@ var parsed,
 	reverseCache = {},
 	reUnescape = /\\/g;
 
-var extractMatchAt = function (expression, regexpPattern, index){
+var extractMatchAt = function(expression, regexpPattern, index){
 	var regexp = new RegExp(regexpPattern);
 	var matches = expression.match(regexp);
 	if (!matches) return null;
@@ -24,9 +24,9 @@ var extractMatchAt = function (expression, regexpPattern, index){
 	var match = matches[index];
 	var remainingExpression = expression.replace(regexp, '');
 	return [match, remainingExpression];
-}
+};
 
-var extractPseudoValue = function (expression){
+var extractPseudoValue = function(expression){
 	var pseudoClassValue = undefined;
 
 	var openBraceMatches = extractMatchAt(expression, '^\\(', 0);
@@ -45,7 +45,7 @@ var extractPseudoValue = function (expression){
 		}
 	}
 
-    if (pseudoClassValue !== undefined){
+	if (pseudoClassValue !== undefined){
 		var closingBraceMatches = extractMatchAt(workingExpression, '^\\)', 0);
 		if (closingBraceMatches){
 			workingExpression = closingBraceMatches[1];
@@ -54,7 +54,7 @@ var extractPseudoValue = function (expression){
 		}
 	}
 	return [pseudoClassValue, workingExpression];
-}
+};
 
 var safeReplace = function(expression, regexp){
 	if (!expression) return;
@@ -63,7 +63,7 @@ var safeReplace = function(expression, regexp){
 	if (!pseudoMarkerMatches) return expression.replace(regexp, parser);
 	var pseudoMarker = pseudoMarkerMatches[0];
 	var workingExpression = pseudoMarkerMatches[1];
-	
+
 	var pseudoClassMatches = extractMatchAt(workingExpression,
 		'^((?:[\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])+)', 0);
 	if (!pseudoClassMatches) return expression.replace(regexp, parser);
