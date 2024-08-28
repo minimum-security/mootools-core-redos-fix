@@ -56,9 +56,7 @@ var extractPseudoValue = function(expression){
 	return [pseudoClassValue, workingExpression];
 };
 
-var safeReplace = function(expression, regexp){
-	if (!expression) return;
-
+var safeReplacePseudo = function(expression, regexp){
 	var pseudoMarkerMatches = extractMatchAt(expression, '^(:+)', 0);
 	if (!pseudoMarkerMatches) return expression.replace(regexp, parser);
 	var pseudoMarker = pseudoMarkerMatches[0];
@@ -89,6 +87,14 @@ var safeReplace = function(expression, regexp){
 	});
 
 	return workingExpression;
+};
+
+var safeReplace = function(expression, regexp){
+	if (!expression) return;
+
+	if (new RegExp('^(:+)').test(expression)) return safeReplacePseudo(expression, regexp);
+
+	return expression.replace(regexp, parser);
 };
 
 var parse = function(expression, isReversed){
