@@ -90,6 +90,63 @@ var safeReplacePseudo = function(expression, regexp){
 };
 
 var safeReplaceAttribute = function(expression, regexp){
+
+	var attributeRegexString = "^\\[\\s*((?:[:\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])+)(?:\\s*([*^$!~|]?=)(?:\\s*(?:([\"']?)(.*?)\\9)))?\\s*\\](?!\\])";	
+	var attributeRegex = new RegExp(attributeRegexString);
+	
+	var matches = expression.match(attributeRegex);
+	if (!matches || !matches[0]) return expression.replace(regexp, parser);
+	
+	attributeKey = matches[0];
+	attributeOperator = matches[1];
+	attributeQuote = matches[2];
+	attributeValue = matches[3];
+
+	if (attributeKey){
+		parseSeparatorsAndCombinators();
+		var currentParsed = parsed.expressions[separatorIndex][combinatorIndex];
+
+		attributeKey = attributeKey.replace(reUnescape, '');
+		attributeValue = (attributeValue || '').replace(reUnescape, '');
+
+		var test, regexp;
+
+		switch (attributeOperator){
+			case '^=' : regexp = new RegExp(       '^'+ escapeRegExp(attributeValue)            ); break;
+			case '$=' : regexp = new RegExp(            escapeRegExp(attributeValue) +'$'       ); break;
+			case '~=' : regexp = new RegExp( '(^|\\s)'+ escapeRegExp(attributeValue) +'(\\s|$)' ); break;
+			case '|=' : regexp = new RegExp(       '^'+ escapeRegExp(attributeValue) +'(-|$)'   ); break;
+			case  '=' : test = function(value){
+				return attributeValue == value;
+			}; break;
+			case '*=' : test = function(value){
+				return value && value.indexOf(attributeValue) > -1;
+			}; break;
+			case '!=' : test = function(value){
+				return attributeValue != value;
+			}; break;
+			default   : test = function(value){
+				return !!value;
+			};
+		}
+
+		if (attributeValue == '' && (/^[*$^]=$/).test(attributeOperator)) test = function(){
+			return false;
+		};
+
+		if (!test) test = function(value){
+			return value && regexp.test(value);
+		};
+		if (!currentParsed.attributes) currentParsed.attributes = [];
+		currentParsed.attributes.push({
+			key: attributeKey,
+			operator: attributeOperator,
+			value: attributeValue,
+			test: test
+		});
+
+	}
+
 	return expression.replace(regexp, parser);
 };
 
@@ -224,7 +281,7 @@ function parser(
 	attributeKey,
 	attributeOperator,
 	attributeQuote,
-	attributeValue
+	attributeValue,
 ){
 	parseSeparatorsAndCombinators(separator, combinator, combinatorChildren);
 
