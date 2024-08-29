@@ -95,12 +95,14 @@ var safeReplaceAttribute = function(expression, regexp){
 	var attributeRegex = new RegExp(attributeRegexString);
 	
 	var matches = expression.match(attributeRegex);
-	if (!matches || !matches[0]) return expression.replace(regexp, parser);
+	if (!matches) return expression.replace(regexp, parser);
 	
-	attributeKey = matches[0];
-	attributeOperator = matches[1];
-	attributeQuote = matches[2];
-	attributeValue = matches[3];
+	var attributeOperator = matches[1];
+	var attributeValue = matches[3];
+
+	var attributeKeyMatches = extractMatchAt(expression, '^\\[\\s*((?:[:\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])+)', 0);
+	if (!attributeKeyMatches) return expression.replace(regexp, parser);
+	var attributeKey = attributeKeyMatches[0];
 
 	if (attributeKey){
 		parseSeparatorsAndCombinators();
