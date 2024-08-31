@@ -90,19 +90,28 @@ var safeReplacePseudo = function(expression, regexp){
 };
 
 var safeReplaceAttribute = function(expression, regexp){
-	var attributeRegexString = "^\\[\\s*((?:[:\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])+)(?:\\s*([*^$!~|]?=)(?:\\s*(?:([\"']?)(.*?)\\3)))?\\s*\\](?!\\])";	
-	var attributeRegex = new RegExp(attributeRegexString);
-	
-	var matches = expression.match(attributeRegex);
-	if (!matches) return expression.replace(regexp, parser);
-	var workingExpression = expression.replace(attributeRegex, '');
-	
-	var attributeOperator = matches[2];
-	var attributeValue = matches[4];
-
 	var attributeKeyMatches = extractMatchAt(expression, '^\\[\\s*((?:[:\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])+)', 1);
 	if (!attributeKeyMatches) return expression.replace(regexp, parser);
 	var attributeKey = attributeKeyMatches[0];
+	var workingExpression = attributeKeyMatches[1];
+
+	var attributeOperator;
+	var attributeValue;
+	var attributeOperatorMatches = extractMatchAt(workingExpression, '^\\s*([*^$!~|]?=)', 1);
+	if (attributeOperatorMatches) {
+		attributeOperator = attributeOperatorMatches[0];
+		workingExpression = attributeOperatorMatches[1];
+
+		var attributeValueMatches = extractMatchAt(workingExpression, "^(?:\\s*(?:([\"']?)(.*?)\\1))(?=\\](?!\\]))", 2);
+		if (attributeValueMatches) {
+			attributeValue = attributeValueMatches[0];
+			workingExpression = attributeValueMatches[1];
+		}
+	}
+
+	var attributeClosingBraceMatches = extractMatchAt(workingExpression, '^\\s*(\\])(?!\\])', 1);
+	if (!attributeClosingBraceMatches || !attributeClosingBraceMatches[0]) return expression.replace(regexp, parser);
+	var workingExpression = attributeClosingBraceMatches[1];
 
 	if (attributeKey){
 		
@@ -147,9 +156,7 @@ var safeReplaceAttribute = function(expression, regexp){
 			value: attributeValue,
 			test: test
 		});
-
 	}
-
 	return workingExpression;
 };
 
