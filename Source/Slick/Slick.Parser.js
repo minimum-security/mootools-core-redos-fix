@@ -89,32 +89,32 @@ var safeReplacePseudo = function(expression, regexp){
 	return workingExpression;
 };
 
-var safeReplaceAttribute = function(expression, regexp){
+var safeReplaceAttribute = function(expression, safeReplaceRegexp){
 	var attributeKeyMatches = extractMatchAt(expression, '^\\[\\s*((?:[:\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])+)', 1);
-	if (!attributeKeyMatches) return expression.replace(regexp, parser);
+	if (!attributeKeyMatches) return expression.replace(safeReplaceRegexp, parser);
 	var attributeKey = attributeKeyMatches[0];
 	var workingExpression = attributeKeyMatches[1];
 
 	var attributeOperator;
 	var attributeValue;
 	var attributeOperatorMatches = extractMatchAt(workingExpression, '^\\s*([*^$!~|]?=)', 1);
-	if (attributeOperatorMatches) {
+	if (attributeOperatorMatches){
 		attributeOperator = attributeOperatorMatches[0];
 		workingExpression = attributeOperatorMatches[1];
 
 		var attributeValueMatches = extractMatchAt(workingExpression, "^(?:\\s*(?:([\"']?)(.*?)\\1))(?=\\](?!\\]))", 2);
-		if (attributeValueMatches) {
+		if (attributeValueMatches){
 			attributeValue = attributeValueMatches[0];
 			workingExpression = attributeValueMatches[1];
 		}
 	}
 
 	var attributeClosingBraceMatches = extractMatchAt(workingExpression, '^\\s*(\\])(?!\\])', 1);
-	if (!attributeClosingBraceMatches || !attributeClosingBraceMatches[0]) return expression.replace(regexp, parser);
-	var workingExpression = attributeClosingBraceMatches[1];
+	if (!attributeClosingBraceMatches || !attributeClosingBraceMatches[0]) return expression.replace(safeReplaceRegexp, parser);
+	workingExpression = attributeClosingBraceMatches[1];
 
 	if (attributeKey){
-		
+
 		parseSeparatorsAndCombinators();
 		var currentParsed = parsed.expressions[separatorIndex][combinatorIndex];
 
@@ -251,7 +251,7 @@ __END__
 	)?\
 	)"
 */
-	"^(?:\\s*(,)\\s*|\\s*(<combinator>+)\\s*|(\\s+)|(<unicode>+|\\*)|\\#(<unicode>+)|\\.(<unicode>+))"
+	'^(?:\\s*(,)\\s*|\\s*(<combinator>+)\\s*|(\\s+)|(<unicode>+|\\*)|\\#(<unicode>+)|\\.(<unicode>+))'
 	.replace(/<combinator>/, '[' + escapeRegExp('>+~`!@$%^&={}\\;</') + ']')
 	.replace(/<unicode>/g, '(?:[\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])')
 	.replace(/<unicode1>/g, '(?:[:\\w\\u00a1-\\uFFFF-]|\\\\[^\\s0-9a-f])')
