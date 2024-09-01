@@ -38,10 +38,36 @@ var extractPseudoValue = function(expression){
 		pseudoClassValue = quotedPseudoValueMatches[0];
 		workingExpression = quotedPseudoValueMatches[1];
 	} else {
-		//var unquotedPseudoValueMatches = extractMatchAt(workingExpression, '^((?:\\([^)]+\\)|.*)+)(?=\\))', 0);
-		if (unquotedPseudoValueMatches){
-			pseudoClassValue = unquotedPseudoValueMatches[0];
-			workingExpression = unquotedPseudoValueMatches[1];
+		var unquotedBracePseudoValueMatches = extractMatchAt(workingExpression, '^(\\([^)]+\\)+)(?=\\))', 0);
+		if (unquotedBracePseudoValueMatches){
+			pseudoClassValue = unquotedBracePseudoValueMatches[0];
+			workingExpression = unquotedBracePseudoValueMatches[1];
+		} else {
+			var pseudoClassValueLength = 0;
+			var openedSubExpression = false;
+			var openedSubExpressionLength = 0;
+			var match = false;
+			for (var i = 0; i < workingExpression.length; i++){
+				pseudoClassValueLength = i;openedSubExpression
+			    if (openedSubExpression && openedSubExpressionLength === 0 && workingExpression[i] === ')') break;
+				if (openedSubExpression){
+					openedSubExpressionLength += 1;
+				}
+				if (workingExpression[i] === ')' && !openedSubExpression){
+					match = true;
+					break;
+				}
+				if (workingExpression[i] === '('){
+					openedSubExpression = true;
+				} else if (workingExpression[i] === ')'){
+					openedSubExpression = false;
+					openedSubExpressionLength = 0;
+				}
+			}
+			if (match){
+				pseudoClassValue = workingExpression.substring(0, pseudoClassValueLength);
+				workingExpression = workingExpression.substring(pseudoClassValueLength, workingExpression.length);
+			}
 		}
 	}
 
