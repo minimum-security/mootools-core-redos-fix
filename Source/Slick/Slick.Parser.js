@@ -48,8 +48,8 @@ var extractPseudoValue = function(expression){
 			var openedSubExpressionLength = 0;
 			var match = false;
 			for (var i = 0; i < workingExpression.length; i++){
-				pseudoClassValueLength = i;openedSubExpression
-			    if (openedSubExpression && openedSubExpressionLength === 0 && workingExpression[i] === ')') break;
+				pseudoClassValueLength = i;
+				if (openedSubExpression && openedSubExpressionLength === 0 && workingExpression[i] === ')') break;
 				if (openedSubExpression){
 					openedSubExpressionLength += 1;
 				}
