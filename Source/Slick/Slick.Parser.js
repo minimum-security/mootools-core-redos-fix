@@ -38,7 +38,7 @@ var extractPseudoValue = function(expression){
 		pseudoClassValue = quotedPseudoValueMatches[0];
 		workingExpression = quotedPseudoValueMatches[1];
 	} else {
-		var unquotedPseudoValueMatches = extractMatchAt(workingExpression, '^((?:\\([^)]+\\)|[^()]*)+)(?=\\))', 0);
+		//var unquotedPseudoValueMatches = extractMatchAt(workingExpression, '^((?:\\([^)]+\\)|.*)+)(?=\\))', 0);
 		if (unquotedPseudoValueMatches){
 			pseudoClassValue = unquotedPseudoValueMatches[0];
 			workingExpression = unquotedPseudoValueMatches[1];
